@@ -1,0 +1,6 @@
+export { AuthLayout } from './AuthLayout'
+export { AppShell } from './AppShell'
+export { FacultyLayout } from './FacultyLayout'
+export { HODLayout } from './HODLayout'
+export { DeanLayout } from './DeanLayout'
+export { AdminLayout } from './AdminLayout'

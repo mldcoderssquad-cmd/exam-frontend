@@ -1,0 +1,6 @@
+export * from './auth'
+export * from './faculty'
+export * from './hod'
+export * from './dean'
+export * from './admin'
+export * from './ocr'

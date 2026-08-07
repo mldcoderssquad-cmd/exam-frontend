@@ -1,0 +1,18 @@
+export const SCREEN_ROUTES: Record<string, string> = {
+  'login': 'Login',
+  'forgot-password': 'Forgot Password',
+  'reset-password': 'Reset Password',
+  'account-activation': 'Account Activation',
+  'profile': 'User Profile',
+  'edit-profile': 'Edit Profile',
+  'change-password': 'Change Password',
+  'dashboard-faculty': 'Faculty Dashboard',
+  'dashboard-hod': 'HOD Dashboard',
+  'dashboard-dean': 'Dean Dashboard',
+  'dashboard-admin': 'Admin Dashboard',
+  'admin-users': 'User Management',
+  'admin-create-user': 'Create User',
+  'session-expired': 'Session Expired',
+  'unauthorized': 'Unauthorized',
+  'ocr-workflow': 'OCR Workflow',
+}

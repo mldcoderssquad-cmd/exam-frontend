@@ -1,0 +1,125 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap');
+@import 'tailwindcss';
+
+@theme inline {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'DM Serif Display', ui-serif, Georgia, serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+
+  /* Navy Brand Palette */
+  --color-navy-50: #EEF4FF;
+  --color-navy-100: #D9E6FD;
+  --color-navy-200: #BACFFB;
+  --color-navy-300: #8AAEF7;
+  --color-navy-400: #5382F0;
+  --color-navy-500: #3B5DE8;
+  --color-navy-600: #2A3ECC;
+  --color-navy-700: #2030A6;
+  --color-navy-800: #1B3A6B;
+  --color-navy-900: #0F2142;
+  --color-navy-950: #060E20;
+
+  /* Semantic surface tokens */
+  --color-surface: #F8FAFC;
+  --color-surface-raised: #FFFFFF;
+  --color-surface-overlay: #FFFFFF;
+  --color-border: #E2E8F0;
+  --color-border-strong: #CBD5E1;
+
+  /* Text tokens */
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-muted: #94A3B8;
+  --color-text-inverse: #FFFFFF;
+
+  /* Status colors */
+  --color-success: #059669;
+  --color-success-light: #D1FAE5;
+  --color-success-text: #065F46;
+  --color-error: #DC2626;
+  --color-error-light: #FEE2E2;
+  --color-error-text: #991B1B;
+  --color-warning: #D97706;
+  --color-warning-light: #FEF3C7;
+  --color-warning-text: #92400E;
+  --color-info: #0284C7;
+  --color-info-light: #E0F2FE;
+  --color-info-text: #075985;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  background-color: #F8FAFC;
+  color: #0F172A;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Focus visible */
+:focus-visible {
+  outline: 2px solid #3B5DE8;
+  outline-offset: 2px;
+}
+
+/* Transitions */
+.transition-base {
+  transition: all 0.15s ease;
+}
+
+/* Password strength bar animation */
+@keyframes strengthFill {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+/* Fade in */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease forwards;
+}
+
+/* Spin */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+  animation: spin 1s linear infinite;
+}
+
+/* Shake */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+.animate-shake {
+  animation: shake 0.4s ease;
+}

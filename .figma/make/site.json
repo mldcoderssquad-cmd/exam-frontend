@@ -1,0 +1,10 @@
+{
+  "description": "Secure university exam platform enabling role-based authentication, user management, and access control for faculty, HODs, deans, and admins.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

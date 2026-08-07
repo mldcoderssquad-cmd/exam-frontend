@@ -1,0 +1,48 @@
+import type { User, UserRole } from '@/types'
+
+export const MOCK_USERS: Record<UserRole, User> = {
+  Faculty: {
+    name: 'Dr. Priya Sharma',
+    email: 'priya.sharma@university.edu',
+    employeeId: 'EMP-2021-042',
+    department: 'Computer Science',
+    designation: 'Associate Professor',
+    role: 'Faculty',
+    status: 'Active',
+    lastLogin: 'January 15, 2025 at 09:41 AM',
+    phone: '+91 98765 43210',
+  },
+  HOD: {
+    name: 'Prof. Arjun Mehta',
+    email: 'arjun.mehta@university.edu',
+    employeeId: 'EMP-2019-017',
+    department: 'Mathematics',
+    designation: 'Head of Department',
+    role: 'HOD',
+    status: 'Active',
+    lastLogin: 'January 15, 2026 at 11:22 AM',
+    phone: '+91 87654 32109',
+  },
+  Dean: {
+    name: 'Prof. Vikram Nair',
+    email: 'vikram.nair@university.edu',
+    employeeId: 'EMP-2018-003',
+    department: 'All Departments',
+    designation: 'Dean of Academics',
+    role: 'Dean',
+    status: 'Active',
+    lastLogin: 'January 15, 2026 at 11:05 AM',
+    phone: '+91 65432 10987',
+  },
+  Admin: {
+    name: 'Mr. Rahul Gupta',
+    email: 'rahul.gupta@university.edu',
+    employeeId: 'EMP-2020-033',
+    department: 'IT Services',
+    designation: 'System Administrator',
+    role: 'Admin',
+    status: 'Active',
+    lastLogin: 'January 15, 2026 at 08:00 AM',
+    phone: '+91 43210 98765',
+  },
+}
