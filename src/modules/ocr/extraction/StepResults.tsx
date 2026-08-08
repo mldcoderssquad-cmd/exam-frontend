@@ -1,19 +1,39 @@
+// src/modules/ocr/extraction/StepResults.tsx
+
 import { Card, CardHeader, Button, ChevronRightIcon, Alert } from '@/components/common'
 import { ConfidenceBadge } from '../shared'
 import type { AnswerSheetOCR, OCRConfidence } from '@/types'
+import { useOCRStore } from '@/stores/ocrStore'
+import { transformStudentToSheet } from '@/services/api/transformers'
 
-export default function StepResults({ sheets, onNext, onVerifySheet }: {
-  sheets: AnswerSheetOCR[]
+export default function StepResults({ onNext, onVerifySheet }: {
   onNext: () => void
   onVerifySheet: (id: string) => void
 }) {
+  // Get results from store
+  const { results, summary } = useOCRStore()
+  
+  // Transform results to sheets
+  const sheets = results && results.length > 0 
+    ? results.map(transformStudentToSheet)
+    : []
+
+  // If no results, show empty state
+  if (!sheets || sheets.length === 0) {
+    return (
+      <Card className="text-center py-12">
+        <p className="text-[#94A3B8]">No results available. Please process some sheets first.</p>
+      </Card>
+    )
+  }
+
   const fields: (keyof AnswerSheetOCR)[] = ['studentName', 'rollNumber', 'cuid', 'courseName']
   const lowCount = sheets.filter(s => s.overallConfidence === 'Low').length
   const medCount = sheets.filter(s => s.overallConfidence === 'Medium').length
 
   return (
     <div className="space-y-6">
-      {/* Summary */}
+      {/* Summary Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
           { label: 'Total Sheets', value: sheets.length, color: '#1B3A6B', bg: '#EEF4FF' },
@@ -27,6 +47,15 @@ export default function StepResults({ sheets, onNext, onVerifySheet }: {
           </Card>
         ))}
       </div>
+
+      {/* Show summary from API */}
+      {summary && (
+        <Alert 
+          variant="info" 
+          title="Processing Summary"
+          message={`${summary.successful} of ${summary.total_students} students processed successfully. Average score: ${summary.average_percentage}%`} 
+        />
+      )}
 
       {(lowCount > 0 || medCount > 0) && (
         <Alert variant="warning" title="Review Required"
@@ -77,7 +106,7 @@ export default function StepResults({ sheets, onNext, onVerifySheet }: {
                   { label: 'Course Code', val: sheet.courseCode, field: 'courseCode' },
                   { label: 'Father Name', val: sheet.fatherName, field: 'fatherName' },
                 ].map(f => {
-                  const conf = sheet.fieldConfidences[f.field] as OCRConfidence
+                  const conf = sheet.fieldConfidences?.[f.field] as OCRConfidence || 'High'
                   return (
                     <div key={f.label} className={`rounded-lg px-2.5 py-2 border text-xs ${
                       conf === 'Low' ? 'bg-[#FEF2F2] border-[#FECACA]' :
