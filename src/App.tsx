@@ -1,4 +1,5 @@
-import type { User, UserRole, Screen } from '@/types'
+
+import type { UserRole, Screen } from '@/types'
 import { getSavedUser } from '@/services/auth'
 import { getDashboardScreen } from '@/utils'
 import { useAuth, useNavigation } from '@/hooks'
@@ -23,9 +24,7 @@ import OCRWorkflow from '@/modules/ocr/OCRWorkflow'
 import { SessionExpired } from '@/modules/auth/session-expired'
 import { UnauthorizedAccess } from '@/modules/auth/unauthorized'
 
-
 export default function App() {
-
   const {
     screen,
     previousScreen,
@@ -38,7 +37,6 @@ export default function App() {
     logout,
     saveProfile,
   } = useAuth()
-
 
   /*
    * ============================================================
@@ -53,18 +51,11 @@ export default function App() {
    * 4. Saves user in localStorage
    * 5. Calls onSuccess(user.role)
    *
-   * Therefore App.tsx must NOT call:
-   *
-   *     login(role)
-   *
-   * because useAuth.login() requires email + password.
-   *
-   * Instead, retrieve the authenticated user that Login.tsx
-   * has already saved.
+   * Therefore App.tsx retrieves the authenticated user
+   * that Login.tsx has already saved.
    */
 
   const handleLoginSuccess = (role: UserRole) => {
-
     const savedUser = getSavedUser()
 
     if (!savedUser) {
@@ -76,12 +67,11 @@ export default function App() {
       return
     }
 
-    // Put the authenticated backend user into React state.
+    // Put authenticated backend user into React state.
     setUser(savedUser)
 
-    // Navigate according to the ACTUAL backend role.
+    // Navigate according to the actual backend role.
     switch (role) {
-
       case 'Faculty':
         navigate('dashboard-faculty')
         break
@@ -108,7 +98,6 @@ export default function App() {
     }
   }
 
-
   /*
    * ============================================================
    * LOGOUT
@@ -119,7 +108,6 @@ export default function App() {
     logout()
     navigate('login')
   }
-
 
   /*
    * ============================================================
@@ -133,7 +121,6 @@ export default function App() {
     saveProfile(updates)
   }
 
-
   /*
    * ============================================================
    * DASHBOARD SCREEN FOR CURRENT USER
@@ -141,7 +128,6 @@ export default function App() {
    */
 
   const getDashboardScreenForUser = (): Screen => {
-
     if (!currentUser) {
       return 'login'
     }
@@ -151,7 +137,6 @@ export default function App() {
     ) as Screen
   }
 
-
   /*
    * ============================================================
    * LOGIN SCREEN
@@ -159,7 +144,6 @@ export default function App() {
    */
 
   if (screen === 'login') {
-
     return (
       <Login
         onSuccess={handleLoginSuccess}
@@ -179,7 +163,6 @@ export default function App() {
     )
   }
 
-
   /*
    * ============================================================
    * FORGOT PASSWORD
@@ -187,7 +170,6 @@ export default function App() {
    */
 
   if (screen === 'forgot-password') {
-
     return (
       <ForgotPassword
         onBack={() =>
@@ -197,7 +179,6 @@ export default function App() {
     )
   }
 
-
   /*
    * ============================================================
    * RESET PASSWORD
@@ -205,7 +186,6 @@ export default function App() {
    */
 
   if (screen === 'reset-password') {
-
     return (
       <ResetPassword
         onBackToLogin={() =>
@@ -215,7 +195,6 @@ export default function App() {
     )
   }
 
-
   /*
    * ============================================================
    * ACCOUNT ACTIVATION
@@ -223,7 +202,6 @@ export default function App() {
    */
 
   if (screen === 'account-activation') {
-
     return (
       <AccountActivation
         onBackToLogin={() =>
@@ -233,7 +211,6 @@ export default function App() {
     )
   }
 
-
   /*
    * ============================================================
    * SESSION EXPIRED
@@ -241,7 +218,6 @@ export default function App() {
    */
 
   if (screen === 'session-expired') {
-
     return (
       <SessionExpired
         onReturnToLogin={() =>
@@ -251,7 +227,6 @@ export default function App() {
     )
   }
 
-
   /*
    * ============================================================
    * UNAUTHORIZED
@@ -259,7 +234,6 @@ export default function App() {
    */
 
   if (screen === 'unauthorized') {
-
     return (
       <UnauthorizedAccess
         onReturnToDashboard={() =>
@@ -277,17 +251,16 @@ export default function App() {
     )
   }
 
-
   /*
    * ============================================================
    * AUTHENTICATION GUARD
    * ============================================================
    *
-   * Every screen below this point requires a logged-in user.
+   * Every screen below this point requires
+   * an authenticated user.
    */
 
   if (!currentUser) {
-
     return (
       <Login
         onSuccess={handleLoginSuccess}
@@ -307,7 +280,6 @@ export default function App() {
     )
   }
 
-
   /*
    * ============================================================
    * USER PROFILE
@@ -315,7 +287,6 @@ export default function App() {
    */
 
   if (screen === 'profile') {
-
     return (
       <UserProfile
         user={currentUser}
@@ -325,7 +296,6 @@ export default function App() {
     )
   }
 
-
   /*
    * ============================================================
    * EDIT PROFILE
@@ -333,7 +303,6 @@ export default function App() {
    */
 
   if (screen === 'edit-profile') {
-
     return (
       <EditProfile
         user={currentUser}
@@ -351,7 +320,6 @@ export default function App() {
     )
   }
 
-
   /*
    * ============================================================
    * CHANGE PASSWORD
@@ -359,7 +327,6 @@ export default function App() {
    */
 
   if (screen === 'change-password') {
-
     return (
       <ChangePassword
         user={currentUser}
@@ -375,18 +342,15 @@ export default function App() {
     )
   }
 
-
   /*
    * ============================================================
    * OCR WORKFLOW
    * ============================================================
    *
-   * IMPORTANT:
    * OCRWorkflow requires `user`.
    */
 
   if (screen === 'ocr-workflow') {
-
     return (
       <OCRWorkflow
         user={currentUser}
@@ -398,32 +362,41 @@ export default function App() {
     )
   }
 
-
   /*
    * ============================================================
    * ADMIN USER MANAGEMENT
    * ============================================================
    *
-   * IMPORTANT:
-   * AdminUserManagement requires `currentUser`.
+   * IMPORTANT FIX:
+   *
+   * AdminUserManagement expects:
+   *
+   *     user={currentUser}
+   *
+   * NOT:
+   *
+   *     currentUser={currentUser}
+   *
+   * Passing `currentUser` previously caused the component's
+   * `user` prop to be undefined, resulting in:
+   *
+   *     Cannot read properties of undefined (reading 'name')
+   *
+   * and therefore the white screen.
    */
 
   if (
     screen === 'admin-users' ||
     screen === 'admin-create-user'
   ) {
-
     return (
       <AdminUserManagement
-        currentUser={currentUser}
-
+        user={currentUser}
         onNavigate={navigate}
-
         onLogout={handleLogout}
       />
     )
   }
-
 
   /*
    * ============================================================
@@ -434,22 +407,19 @@ export default function App() {
   if (
     screen in DASHBOARD_SCREEN_ROLE_MAP
   ) {
-
     const viewRole =
       DASHBOARD_SCREEN_ROLE_MAP[screen]
-
 
     /*
      * Security check:
      *
-     * A logged-in user should only access their
-     * own role dashboard.
+     * A logged-in user should only access
+     * their own role dashboard.
      */
 
     if (
       viewRole !== currentUser.role
     ) {
-
       return (
         <UnauthorizedAccess
           onReturnToDashboard={() =>
@@ -467,7 +437,6 @@ export default function App() {
       )
     }
 
-
     /*
      * Common dashboard props.
      */
@@ -478,15 +447,15 @@ export default function App() {
       onLogout: handleLogout,
     }
 
-
     /*
-     * Faculty
+     * ==========================================================
+     * FACULTY
+     * ==========================================================
      */
 
     if (
       screen === 'dashboard-faculty'
     ) {
-
       return (
         <FacultyDashboard
           {...dashProps}
@@ -494,15 +463,15 @@ export default function App() {
       )
     }
 
-
     /*
+     * ==========================================================
      * HOD
+     * ==========================================================
      */
 
     if (
       screen === 'dashboard-hod'
     ) {
-
       return (
         <HODDashboard
           {...dashProps}
@@ -510,15 +479,15 @@ export default function App() {
       )
     }
 
-
     /*
-     * Dean
+     * ==========================================================
+     * DEAN
+     * ==========================================================
      */
 
     if (
       screen === 'dashboard-dean'
     ) {
-
       return (
         <DeanDashboard
           {...dashProps}
@@ -526,15 +495,15 @@ export default function App() {
       )
     }
 
-
     /*
-     * Admin
+     * ==========================================================
+     * ADMIN
+     * ==========================================================
      */
 
     if (
       screen === 'dashboard-admin'
     ) {
-
       return (
         <AdminDashboard
           {...dashProps}
@@ -542,7 +511,6 @@ export default function App() {
       )
     }
   }
-
 
   /*
    * ============================================================
