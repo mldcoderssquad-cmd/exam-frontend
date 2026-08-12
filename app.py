@@ -1,3 +1,4 @@
+
 import os
 
 from flask import Flask, jsonify
@@ -8,6 +9,7 @@ from dotenv import load_dotenv
 from routes.auth import auth_bp
 from routes.hod import hod_bp
 from routes.admin import admin_bp
+from routes.notification_routes import notification_bp
 
 
 # =========================================================
@@ -24,10 +26,12 @@ load_dotenv()
 MONGODB_URI = os.getenv("MONGODB_URI")
 JWT_SECRET = os.getenv("JWT_SECRET")
 
+
 if not MONGODB_URI:
     raise RuntimeError(
         "MONGODB_URI is not configured in .env"
     )
+
 
 if not JWT_SECRET:
     raise RuntimeError(
@@ -58,11 +62,17 @@ db = client["ExamEvaluate"]
 # =========================================================
 
 try:
+
     client.admin.command("ping")
+
     print("MongoDB connected successfully")
 
 except Exception as e:
-    print("MongoDB connection failed:", str(e))
+
+    print(
+        "MongoDB connection failed:",
+        str(e)
+    )
 
 
 # =========================================================
@@ -74,6 +84,8 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(hod_bp)
 
 app.register_blueprint(admin_bp)
+
+app.register_blueprint(notification_bp)
 
 
 # =========================================================
