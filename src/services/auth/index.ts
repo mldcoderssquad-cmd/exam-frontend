@@ -6,9 +6,12 @@ const API_BASE_URL =
     import.meta.env.VITE_API_BASE_URL ||
     'http://127.0.0.1:5000'
 
+// ─── Backend Login Response ───────────────────────────────────────────────────
+
 interface LoginResponse {
     message: string
     token: string
+
     user: {
         id: string
         name: string
@@ -20,17 +23,13 @@ interface LoginResponse {
     }
 }
 
+// ─── Login ────────────────────────────────────────────────────────────────────
+
 /**
  * Login user through Flask backend.
  *
  * Backend endpoint:
  * POST /api/auth/login
- *
- * Request:
- * {
- *   "email": "...",
- *   "password": "..."
- * }
  */
 export async function login(
     email: string,
@@ -39,32 +38,55 @@ export async function login(
     token: string
     user: User
 }> {
+
     const cleanEmail = email.trim()
 
     // =========================================================
     // Debug information
     // =========================================================
 
-    console.log('========== FRONTEND LOGIN ==========')
-    console.log('Email:', cleanEmail)
-    console.log('Password received:', Boolean(password))
-    console.log('Password length:', password?.length || 0)
+    console.log(
+        '========== FRONTEND LOGIN =========='
+    )
+
+    console.log(
+        'Email:',
+        cleanEmail
+    )
+
+    console.log(
+        'Password received:',
+        Boolean(password)
+    )
+
+    console.log(
+        'Password length:',
+        password?.length || 0
+    )
+
     console.log(
         'API URL:',
         `${API_BASE_URL}/api/auth/login`
     )
-    console.log('====================================')
+
+    console.log(
+        '===================================='
+    )
 
     // =========================================================
     // Basic validation
     // =========================================================
 
     if (!cleanEmail) {
-        throw new Error('Email is required')
+        throw new Error(
+            'Email is required'
+        )
     }
 
     if (!password) {
-        throw new Error('Password is required')
+        throw new Error(
+            'Password is required'
+        )
     }
 
     // =========================================================
@@ -74,14 +96,18 @@ export async function login(
     let response: Response
 
     try {
+
         response = await fetch(
             `${API_BASE_URL}/api/auth/login`,
             {
                 method: 'POST',
 
                 headers: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json',
+                    'Content-Type':
+                        'application/json',
+
+                    Accept:
+                        'application/json',
                 },
 
                 body: JSON.stringify({
@@ -90,7 +116,9 @@ export async function login(
                 }),
             }
         )
+
     } catch (error) {
+
         console.error(
             'Authentication server connection error:',
             error
@@ -113,8 +141,12 @@ export async function login(
         | null = null
 
     try {
-        data = await response.json()
+
+        data =
+            await response.json()
+
     } catch {
+
         console.error(
             'Backend returned a non-JSON response.'
         )
@@ -151,8 +183,10 @@ export async function login(
     // =========================================================
 
     if (!response.ok) {
+
         const message =
-            data && 'message' in data
+            data &&
+                'message' in data
                 ? data.message
                 : undefined
 
@@ -173,6 +207,7 @@ export async function login(
         !('user' in data) ||
         !data.user
     ) {
+
         console.error(
             'Invalid authentication response:',
             data
@@ -183,7 +218,8 @@ export async function login(
         )
     }
 
-    const backendUser = data.user
+    const backendUser =
+        data.user
 
     // =========================================================
     // Validate user information
@@ -194,6 +230,7 @@ export async function login(
         !backendUser.email ||
         !backendUser.role
     ) {
+
         console.error(
             'Incomplete user information:',
             backendUser
@@ -207,14 +244,11 @@ export async function login(
     // =========================================================
     // Employee ID
     //
-    // The backend should return:
+    // backendUser.id
+    //     = MongoDB ObjectId
     //
-    // employeeId: "ADM-2026-001"
-    //
-    // Do NOT use backendUser.id here.
-    //
-    // backendUser.id = MongoDB ObjectId
-    // backendUser.employeeId = actual employee ID
+    // backendUser.employeeId
+    //     = Actual employee ID
     // =========================================================
 
     const employeeId =
@@ -226,6 +260,12 @@ export async function login(
     // =========================================================
 
     const user: User = {
+
+        // IMPORTANT:
+        // Keep MongoDB ID for notifications
+        id:
+            backendUser.id,
+
         name:
             backendUser.name || '',
 
@@ -270,6 +310,11 @@ export async function login(
     )
 
     console.log(
+        'MongoDB ID:',
+        user.id
+    )
+
+    console.log(
         'Email:',
         user.email
     )
@@ -299,15 +344,30 @@ export async function login(
     )
 
     // =========================================================
+    // Save authentication information
+    // =========================================================
+
+    saveToken(
+        data.token
+    )
+
+    saveUser(
+        user
+    )
+
+    // =========================================================
     // Return authentication result
     // =========================================================
 
     return {
-        token: data.token,
+        token:
+            data.token,
+
         user,
     }
 }
 
+// ─── Normalize Role ────────────────────────────────────────────────────────────
 
 /**
  * Convert backend role into frontend UserRole type.
@@ -315,6 +375,7 @@ export async function login(
 function normalizeRole(
     role: string
 ): UserRole {
+
     const normalized =
         role.trim().toLowerCase()
 
@@ -342,6 +403,7 @@ function normalizeRole(
     }
 }
 
+// ─── Token Storage ─────────────────────────────────────────────────────────────
 
 /**
  * Save JWT token.
@@ -349,12 +411,12 @@ function normalizeRole(
 export function saveToken(
     token: string
 ) {
+
     localStorage.setItem(
         'exam_evaluate_token',
         token
     )
 }
-
 
 /**
  * Get JWT token.
@@ -362,21 +424,23 @@ export function saveToken(
 export function getToken():
     | string
     | null {
+
     return localStorage.getItem(
         'exam_evaluate_token'
     )
 }
 
-
 /**
  * Remove JWT token.
  */
 export function removeToken() {
+
     localStorage.removeItem(
         'exam_evaluate_token'
     )
 }
 
+// ─── User Storage ──────────────────────────────────────────────────────────────
 
 /**
  * Save authenticated user.
@@ -384,12 +448,12 @@ export function removeToken() {
 export function saveUser(
     user: User
 ) {
+
     localStorage.setItem(
         'exam_evaluate_user',
         JSON.stringify(user)
     )
 }
-
 
 /**
  * Get saved authenticated user.
@@ -397,6 +461,7 @@ export function saveUser(
 export function getSavedUser():
     | User
     | null {
+
     const stored =
         localStorage.getItem(
             'exam_evaluate_user'
@@ -407,10 +472,13 @@ export function getSavedUser():
     }
 
     try {
+
         return JSON.parse(
             stored
         ) as User
+
     } catch (error) {
+
         console.error(
             'Failed to parse saved user:',
             error
@@ -420,11 +488,13 @@ export function getSavedUser():
     }
 }
 
+// ─── Clear Authentication ──────────────────────────────────────────────────────
 
 /**
  * Clear all authentication information.
  */
 export function clearAuth() {
+
     removeToken()
 
     localStorage.removeItem(
