@@ -7,7 +7,7 @@ from pymongo import MongoClient
 from dotenv import load_dotenv
 
 from routes.auth import auth_bp
-from routes.hod import hod_bp
+#from routes.hod import hod_bp
 from routes.admin import admin_bp
 from routes.notification_routes import notification_bp
 
@@ -83,7 +83,7 @@ app.register_blueprint(auth_bp)
 
 app.register_blueprint(hod_bp)
 
-app.register_blueprint(admin_bp)
+#app.register_blueprint(admin_bp)
 
 app.register_blueprint(notification_bp)
 
