@@ -1,3 +1,4 @@
+
 import os
 
 from flask import Flask, jsonify
@@ -6,23 +7,31 @@ from pymongo import MongoClient
 from dotenv import load_dotenv
 
 from routes.auth import auth_bp
+from routes.hod import hod_bp
+from routes.admin import admin_bp
+from routes.notification_routes import notification_bp
 
 
+# =========================================================
 # Load environment variables
+# =========================================================
+
 load_dotenv()
 
 
-# --------------------------------------------------
+# =========================================================
 # Configuration
-# --------------------------------------------------
+# =========================================================
 
 MONGODB_URI = os.getenv("MONGODB_URI")
 JWT_SECRET = os.getenv("JWT_SECRET")
+
 
 if not MONGODB_URI:
     raise RuntimeError(
         "MONGODB_URI is not configured in .env"
     )
+
 
 if not JWT_SECRET:
     raise RuntimeError(
@@ -30,50 +39,82 @@ if not JWT_SECRET:
     )
 
 
-# --------------------------------------------------
-# Flask
-# --------------------------------------------------
+# =========================================================
+# Flask Application
+# =========================================================
 
 app = Flask(__name__)
 
 CORS(app)
 
 
-# --------------------------------------------------
+# =========================================================
 # MongoDB
-# --------------------------------------------------
+# =========================================================
 
 client = MongoClient(MONGODB_URI)
 
 db = client["ExamEvaluate"]
 
-# Test MongoDB connection
-client.admin.command("ping")
+
+# =========================================================
+# Test MongoDB Connection
+# =========================================================
+
+try:
+
+    client.admin.command("ping")
+
+    print("MongoDB connected successfully")
+
+except Exception as e:
+
+    print(
+        "MongoDB connection failed:",
+        str(e)
+    )
 
 
-# --------------------------------------------------
-# Routes
-# --------------------------------------------------
+# =========================================================
+# Routes / Blueprints
+# =========================================================
 
 app.register_blueprint(auth_bp)
 
+app.register_blueprint(hod_bp)
+
+app.register_blueprint(admin_bp)
+
+app.register_blueprint(notification_bp)
+
+
+# =========================================================
+# Home
+# =========================================================
 
 @app.route("/")
 def home():
+
     return jsonify({
         "message": "ExamEvaluate Flask backend is running"
     })
 
 
+# =========================================================
+# Health Check
+# =========================================================
+
 @app.route("/api/health")
 def health():
+
     try:
+
         client.admin.command("ping")
 
         return jsonify({
             "message": "Flask and MongoDB are connected",
             "status": "success"
-        })
+        }), 200
 
     except Exception as e:
 
@@ -84,11 +125,12 @@ def health():
         }), 500
 
 
-# --------------------------------------------------
-# Start server
-# --------------------------------------------------
+# =========================================================
+# Start Server
+# =========================================================
 
 if __name__ == "__main__":
+
     app.run(
         debug=True,
         use_reloader=False,
