@@ -3,6 +3,7 @@ import sys
 
 from dotenv import load_dotenv
 from pymongo import MongoClient
+from pymongo.errors import DuplicateKeyError
 
 # ============================================================
 # Backend directory
@@ -18,7 +19,7 @@ if BACKEND_DIR not in sys.path:
     sys.path.insert(0, BACKEND_DIR)
 
 # ============================================================
-# Import the SAME password hashing function used by Flask
+# Import SAME password hashing function used by Flask
 # ============================================================
 
 from utils.security import hash_password
@@ -48,21 +49,47 @@ if not MONGODB_URI:
 client = MongoClient(MONGODB_URI)
 
 # ============================================================
-# Database and collection
+# Database
 # ============================================================
 
 db = client["ExamEvaluate"]
 users = db["users"]
 
 # ============================================================
-# Users to create/update
+# USERS
 # ============================================================
 
-new_users = [
+users_to_create = [
+
+    # ========================================================
+    # ADMIN
+    # ========================================================
+
+    {
+        "name": "ExamEvaluate Admin",
+        "email": "admin@examevaluate.com",
+
+        # CHANGE THIS PASSWORD
+        "password": "Admin@123",
+
+        "employeeId": "ADM-2026-001",
+        "role": "admin",
+        "status": "active",
+        "department": "Administration",
+        "designation": "System Administrator",
+    },
+
+    # ========================================================
+    # FACULTY
+    # ========================================================
+
     {
         "name": "Dr. Akshay Juneja",
-        "email": "faculty@university.edu",
-        "password": "Faculty@123",
+        "email": "faculty001@university.edu",
+
+        # CHANGE THIS PASSWORD IF REQUIRED
+        "password": "Faculty@001",
+
         "employeeId": "FAC-2026-001",
         "role": "faculty",
         "status": "active",
@@ -71,9 +98,85 @@ new_users = [
     },
 
     {
+        "name": "Dr. Aradhya Saini ",
+        "email": "faculty002@university.edu",
+    
+            # CHANGE THIS PASSWORD IF REQUIRED
+        "password": "Faculty@002",
+    
+        "employeeId": "FAC-2026-002",
+        "role": "faculty",
+        "status": "active",
+        "department": "Computer Science",
+        "designation": "Assistant Professor",
+    },
+
+    {
+        "name": "Ms. Nidhi Rana",
+        "email": "faculty003@university.edu",
+    
+            # CHANGE THIS PASSWORD IF REQUIRED
+        "password": "Faculty@003",
+    
+        "employeeId": "FAC-2026-003",
+        "role": "faculty",
+        "status": "active",
+        "department": "Computer Science",
+        "designation": "Assistant Professor",
+    },
+
+    {
+        "name": "Ms. Neetu Singh",
+        "email": "faculty004@university.edu",
+    
+            # CHANGE THIS PASSWORD IF REQUIRED
+        "password": "Faculty@004",
+    
+        "employeeId": "FAC-2026-004",
+        "role": "faculty",
+        "status": "active",
+        "department": "Computer Science",
+        "designation": "Assistant Professor",
+    },
+
+    {
+        "name": "Mr. Ravi Kumar",
+        "email": "faculty005@university.edu",
+    
+            # CHANGE THIS PASSWORD IF REQUIRED
+        "password": "Faculty@005",
+    
+        "employeeId": "FAC-2026-005",
+        "role": "faculty",
+        "status": "active",
+        "department": "Computer Science",
+        "designation": "Assistant Professor",
+    },
+    {
+        "name": "Mr. Kapil Kumar",
+        "email": "faculty006@university.edu",
+    
+            # CHANGE THIS PASSWORD IF REQUIRED
+        "password": "Faculty@006",
+    
+        "employeeId": "FAC-2026-006",
+        "role": "faculty",
+        "status": "active",
+        "department": "Computer Science",
+        "designation": "Assistant Professor",
+    },
+
+    # ========================================================
+    # HOD
+    # ========================================================
+
+    {
         "name": "Prof. Deepak Painuli",
         "email": "hod@university.edu",
+
+        # CHANGE THIS PASSWORD IF REQUIRED
         "password": "HOD@1234",
+
         "employeeId": "HOD-2026-001",
         "role": "hod",
         "status": "active",
@@ -81,10 +184,17 @@ new_users = [
         "designation": "Head of Department",
     },
 
+    # ========================================================
+    # DEAN
+    # ========================================================
+
     {
         "name": "Prof. Gessu Thakur",
         "email": "dean@university.edu",
+
+        # CHANGE THIS PASSWORD IF REQUIRED
         "password": "Dean@123",
+
         "employeeId": "DEAN-2026-001",
         "role": "dean",
         "status": "active",
@@ -94,31 +204,67 @@ new_users = [
 ]
 
 # ============================================================
-# Create or update users
+# Create unique indexes
 # ============================================================
 
-for user in new_users:
+print("\nCreating unique indexes...")
 
-    email = user["email"].strip().lower()
+try:
 
-    # --------------------------------------------------------
-    # Check whether user already exists
-    # --------------------------------------------------------
-
-    existing_user = users.find_one(
-        {
-            "email": email
-        }
+    users.create_index(
+        [("email", 1)],
+        unique=True,
+        name="unique_user_email"
     )
 
+    users.create_index(
+        [("employeeId", 1)],
+        unique=True,
+        name="unique_employee_id"
+    )
+
+    print("Unique indexes are ready.")
+
+except Exception as e:
+
+    print("Index creation warning:")
+    print(e)
+
+# ============================================================
+# CREATE / UPDATE USERS
+# ============================================================
+
+print("\nStarting user creation/update...\n")
+
+for user in users_to_create:
+
+    email = user["email"].strip().lower()
+    employee_id = user["employeeId"].strip()
+
     # --------------------------------------------------------
-    # Existing user
+    # Find existing user by email
     # --------------------------------------------------------
+
+    existing_user = users.find_one({
+        "email": email
+    })
+
+    # --------------------------------------------------------
+    # If email doesn't exist, find by employee ID
+    # --------------------------------------------------------
+
+    if not existing_user:
+
+        existing_user = users.find_one({
+            "employeeId": employee_id
+        })
+
+    # ========================================================
+    # EXISTING USER
+    # ========================================================
 
     if existing_user:
 
-        # Hash password using the SAME bcrypt implementation
-        # used by the Flask login endpoint.
         hashed_password = hash_password(
             user["password"]
         )
@@ -132,7 +278,7 @@ for user in new_users:
                     "name": user["name"],
                     "email": email,
                     "password": hashed_password,
-                    "employeeId": user["employeeId"],
+                    "employeeId": employee_id,
                     "role": user["role"],
                     "status": user["status"],
                     "department": user["department"],
@@ -141,23 +287,11 @@ for user in new_users:
             }
         )
 
-        print(
-            f"Updated existing user: {email}"
-        )
-        print(
-            f"Role: {user['role']}"
-        )
-        print(
-            f"Employee ID: {user['employeeId']}"
-        )
-        print(
-            f"Password: {user['password']}"
-        )
-        print("-" * 50)
+        print(f"UPDATED: {email}")
 
-    # --------------------------------------------------------
-    # New user
-    # --------------------------------------------------------
+    # ========================================================
+    # NEW USER
+    # ========================================================
 
     else:
 
@@ -165,42 +299,107 @@ for user in new_users:
             user["password"]
         )
 
-        user_to_insert = {
+        user_document = {
             "name": user["name"],
             "email": email,
             "password": hashed_password,
-            "employeeId": user["employeeId"],
+            "employeeId": employee_id,
             "role": user["role"],
             "status": user["status"],
             "department": user["department"],
             "designation": user["designation"],
         }
 
-        result = users.insert_one(
-            user_to_insert
-        )
+        try:
 
-        print(
-            f"Created user: {email}"
-        )
-        print(
-            f"Role: {user['role']}"
-        )
-        print(
-            f"Employee ID: {user['employeeId']}"
-        )
-        print(
-            f"MongoDB ID: {result.inserted_id}"
-        )
-        print(
-            f"Password: {user['password']}"
-        )
-        print("-" * 50)
+            result = users.insert_one(
+                user_document
+            )
+
+            print(f"CREATED: {email}")
+
+            print(
+                f"MongoDB ID: {result.inserted_id}"
+            )
+
+        except DuplicateKeyError:
+
+            print(
+                f"DUPLICATE PREVENTED: {email}"
+            )
+
+    print(
+        f"Role: {user['role']}"
+    )
+
+    print(
+        f"Employee ID: {user['employeeId']}"
+    )
+
+    print("-" * 60)
 
 # ============================================================
-# Finished
+# FINAL VERIFICATION
 # ============================================================
+
+print("\n========================================")
+print("USER CREATION / UPDATE COMPLETED")
+print("========================================\n")
+
+print("Users currently in MongoDB:\n")
+
+for user in users.find(
+    {},
+    {
+        "name": 1,
+        "email": 1,
+        "role": 1,
+        "employeeId": 1,
+        "status": 1,
+        "department": 1,
+        "designation": 1,
+    }
+):
+
+    print(
+        f"Name        : {user.get('name')}"
+    )
+
+    print(
+        f"Email       : {user.get('email')}"
+    )
+
+    print(
+        f"Role        : {user.get('role')}"
+    )
+
+    print(
+        f"Employee ID : {user.get('employeeId')}"
+    )
+
+    print(
+        f"Status      : {user.get('status')}"
+    )
+
+    print(
+        f"Department  : {user.get('department')}"
+    )
+
+    print(
+        f"Designation : {user.get('designation')}"
+    )
+
+    print("-" * 60)
 
 print(
-    "User creation/update completed."
+    f"\nTotal users: {users.count_documents({})}"
 )
+
+# ============================================================
+# Close MongoDB connection
+# ============================================================
+
+client.close()
+
+print("\nMongoDB connection closed.")
+print("Done.")
