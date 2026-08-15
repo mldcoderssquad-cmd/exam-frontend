@@ -1,19 +1,18 @@
-// src/services/api/examService.ts
-
 import { apiClient } from './client';
 import { API_CONFIG } from './config';
 
 export interface ProcessBatchResponse {
   status: string;
-  summary: {
+  job_id?: string;
+  summary?: {
     total_students: number;
     successful: number;
     failed: number;
     average_percentage: number;
   };
-  results: StudentResult[];
-  request_id: string;
-  duration: string;
+  results?: StudentResult[];
+  request_id?: string;
+  duration?: string;
   total_files: number;
 }
 
@@ -51,9 +50,6 @@ export interface VerifiedDetail {
 }
 
 export const examService = {
-  /**
-   * Process a single student's exam paper
-   */
   processStudent: async (
     answerKey: string,
     pdfFile: File,
@@ -73,9 +69,6 @@ export const examService = {
     return response.data;
   },
 
-  /**
-   * Process multiple students' exam papers (BATCH)
-   */
   processBatch: async (
     answerKey: string,
     pdfFiles: File[]
@@ -94,9 +87,6 @@ export const examService = {
     return response.data;
   },
 
-  /**
-   * Validate PDF files before processing
-   */
   validateFiles: async (pdfFiles: File[]): Promise<any> => {
     const formData = new FormData();
     pdfFiles.forEach((file) => {
@@ -110,9 +100,6 @@ export const examService = {
     return response.data;
   },
 
-  /**
-   * Parse answer key text
-   */
   parseAnswerKey: async (answerKey: string): Promise<any> => {
     const response = await apiClient.post(
       API_CONFIG.endpoints.parseAnswerKey,
@@ -121,9 +108,6 @@ export const examService = {
     return response.data;
   },
 
-  /**
-   * Validate answer key structure
-   */
   validateAnswerKey: async (answerKey: string): Promise<any> => {
     const response = await apiClient.post(
       API_CONFIG.endpoints.validateAnswerKey,
@@ -132,9 +116,20 @@ export const examService = {
     return response.data;
   },
 
-  /**
-   * Health check
-   */
+  listAnswerKeys: async (): Promise<any> => {
+    const response = await apiClient.get(
+      '/api/answer-key/list'
+    );
+    return response.data;
+  },
+
+  getAnswerKey: async (id: string): Promise<any> => {
+    const response = await apiClient.get(
+      `/api/answer-key/${id}`
+    );
+    return response.data;
+  },
+
   healthCheck: async (): Promise<any> => {
     const response = await apiClient.get(API_CONFIG.endpoints.health);
     return response.data;
