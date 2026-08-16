@@ -1,41 +1,35 @@
-// src/modules/ocr/verification/StepVerification.tsx
-
 import { useState, useEffect } from 'react'
 import { Card, Button, Alert, AlertTriangleIcon, CheckIcon, XIcon, Spinner } from '@/components/common'
 import { ConfidenceBadge, AnswerSheetPreview } from '../shared'
 import type { AnswerSheetOCR, OCRConfidence } from '@/types'
 import { useOCRStore } from '@/stores/ocrStore'
 
-export default function StepVerification({ 
-  sheets: propSheets, 
-  onSheetsUpdate, 
-  onNext, 
-  verifyingId, 
-  onVerifySheet 
-}: {
-  sheets: AnswerSheetOCR[]
-  onSheetsUpdate: (sheets: AnswerSheetOCR[]) => void
-  onNext: () => void
-  verifyingId: string | null
-  onVerifySheet: (id: string | null) => void
-}) {
-  // Use store for state management
-  const { updateVerificationStatus, updateSheetData } = useOCRStore()
+export default function StepVerification({ onNext }: { onNext: () => void }) {
+  const { sheets, updateVerificationStatus, updateSheetData } = useOCRStore()
   const [editFields, setEditFields] = useState<Partial<AnswerSheetOCR>>({})
-  const [activeSheet, setActiveSheet] = useState<AnswerSheetOCR | null>(
-    verifyingId ? propSheets.find(s => s.id === verifyingId) ?? propSheets[0] : propSheets[0]
-  )
+  const [activeSheet, setActiveSheet] = useState<AnswerSheetOCR | null>(null)
   const [highlightField, setHighlightField] = useState<string | undefined>()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Set active sheet when sheets load or change
   useEffect(() => {
-    if (verifyingId) {
-      const s = propSheets.find(s => s.id === verifyingId)
-      if (s) { setActiveSheet(s); setEditFields({}) }
+    if (sheets.length > 0 && !activeSheet) {
+      const pending = sheets.find(s => s.verificationStatus === 'pending')
+      setActiveSheet(pending || sheets[0])
     }
-  }, [verifyingId, propSheets])
+  }, [sheets, activeSheet])
 
+  // Early return if no sheets
+  if (!sheets || sheets.length === 0) {
+    return (
+      <Card className="text-center py-12">
+        <p className="text-[#94A3B8]">No sheets to verify</p>
+      </Card>
+    )
+  }
+
+  // Early return if no active sheet
   if (!activeSheet) {
     return (
       <Card className="text-center py-12">
@@ -46,80 +40,98 @@ export default function StepVerification({
 
   const merged = { ...activeSheet, ...editFields }
 
+  // Field definitions with dynamic values from OCR data
   const fieldDefs = [
-    { key: 'program', label: 'Program', placeholder: 'e.g. B.Tech' },
-    { key: 'branch', label: 'Branch / Specialization', placeholder: 'e.g. Computer Science & Engineering' },
-    { key: 'studentName', label: 'Student Name', placeholder: 'Full name as on records' },
-    { key: 'fatherName', label: "Father's Name", placeholder: "Father's full name" },
-    { key: 'rollNumber', label: 'University Roll Number', placeholder: 'e.g. 2021UCS042' },
-    { key: 'cuid', label: 'CUID', placeholder: 'e.g. CU21001234' },
-    { key: 'courseName', label: 'Course Name', placeholder: 'Full course name' },
-    { key: 'courseCode', label: 'Course Code', placeholder: 'e.g. CS401' },
+    { 
+      key: 'program', 
+      label: 'Program', 
+      placeholder: 'e.g. B.Tech',
+      value: merged.program || ''
+    },
+    { 
+      key: 'branch', 
+      label: 'Branch / Specialization', 
+      placeholder: 'e.g. Computer Science & Engineering',
+      value: merged.branch || (merged as any).specialization || ''
+    },
+    { 
+      key: 'studentName', 
+      label: 'Student Name', 
+      placeholder: 'Full name as on records',
+      value: merged.studentName || (merged as any).name || ''
+    },
+    { 
+      key: 'fatherName', 
+      label: "Father's Name", 
+      placeholder: "Father's full name",
+      value: merged.fatherName || (merged as any).fathersName || ''
+    },
+    { 
+      key: 'rollNumber', 
+      label: 'University Roll Number', 
+      placeholder: 'e.g. 2021UCS042',
+      value: merged.rollNumber || (merged as any).roll || (merged as any).rollNo || ''
+    },
+    { 
+      key: 'cuid', 
+      label: 'CUID', 
+      placeholder: 'e.g. CU21001234',
+      value: merged.cuid || (merged as any).cuId || ''
+    },
+    { 
+      key: 'courseName', 
+      label: 'Course Name', 
+      placeholder: 'Full course name',
+      value: merged.courseName || (merged as any).subject || ''
+    },
+    { 
+      key: 'courseCode', 
+      label: 'Course Code', 
+      placeholder: 'e.g. CS401',
+      value: merged.courseCode || (merged as any).subjectCode || ''
+    },
   ]
 
-  // Handle approve with store update
   const handleApprove = async () => {
     setIsSubmitting(true)
     setError(null)
     
     try {
-      // 1. Update local state
-      const updatedSheet = { 
-        ...activeSheet, 
-        ...editFields, 
-        verificationStatus: 'approved' as const 
-      }
-      const updatedSheets = propSheets.map(s => 
-        s.id === activeSheet.id ? updatedSheet : s
-      )
-      onSheetsUpdate(updatedSheets)
-      
-      // 2. Update store
       updateVerificationStatus(activeSheet.id, 'approved')
       
-      // 3. If fields were edited, update store with new data
       if (Object.keys(editFields).length > 0) {
         updateSheetData(activeSheet.id, editFields)
       }
       
-      // 4. Move to next pending sheet
+      // Find next pending sheet
+      const updatedSheets = sheets.map(s => 
+        s.id === activeSheet.id ? { ...s, ...editFields, verificationStatus: 'approved' as const } : s
+      )
       const next = updatedSheets.find(s => s.id !== activeSheet.id && s.verificationStatus === 'pending')
       if (next) { 
         setActiveSheet(next)
         setEditFields({})
         setHighlightField(undefined)
       } else {
-        // All verified - proceed to next step
         onNext()
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to approve sheet')
-      // Revert on error
-      const reverted = propSheets.map(s => 
-        s.id === activeSheet.id ? activeSheet : s
-      )
-      onSheetsUpdate(reverted)
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  // Handle reject with store update
   const handleReject = async () => {
     setIsSubmitting(true)
     setError(null)
     
     try {
-      // 1. Update local state
-      const updatedSheets = propSheets.map(s => 
-        s.id === activeSheet.id ? { ...s, verificationStatus: 'rejected' as const } : s
-      )
-      onSheetsUpdate(updatedSheets)
-      
-      // 2. Update store
       updateVerificationStatus(activeSheet.id, 'rejected')
       
-      // 3. Move to next pending sheet
+      const updatedSheets = sheets.map(s => 
+        s.id === activeSheet.id ? { ...s, verificationStatus: 'rejected' as const } : s
+      )
       const next = updatedSheets.find(s => s.id !== activeSheet.id && s.verificationStatus === 'pending')
       if (next) { 
         setActiveSheet(next)
@@ -128,27 +140,21 @@ export default function StepVerification({
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to reject sheet')
-      const reverted = propSheets.map(s => 
-        s.id === activeSheet.id ? activeSheet : s
-      )
-      onSheetsUpdate(reverted)
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const pendingCount = propSheets.filter(s => s.verificationStatus === 'pending').length
-  const approvedCount = propSheets.filter(s => s.verificationStatus === 'approved').length
-  const rejectedCount = propSheets.filter(s => s.verificationStatus === 'rejected').length
+  const pendingCount = sheets.filter(s => s.verificationStatus === 'pending').length
+  const approvedCount = sheets.filter(s => s.verificationStatus === 'approved').length
+  const rejectedCount = sheets.filter(s => s.verificationStatus === 'rejected').length
 
   return (
     <div className="space-y-4">
-      {/* Error display */}
       {error && (
         <Alert variant="error" title="Error" message={error} />
       )}
 
-      {/* Summary stats */}
       <div className="grid grid-cols-3 gap-3">
         {[
           { label: 'Pending', value: pendingCount, color: '#D97706', bg: '#FEF3C7' },
@@ -162,11 +168,10 @@ export default function StepVerification({
         ))}
       </div>
 
-      {/* Sheet selector */}
       <Card className="py-3">
         <div className="flex flex-wrap gap-2 items-center">
           <span className="text-xs font-semibold text-[#94A3B8] uppercase tracking-wide mr-1">Sheets:</span>
-          {propSheets.map(s => (
+          {sheets.map(s => (
             <button
               key={s.id}
               onClick={() => { setActiveSheet(s); setEditFields({}); setHighlightField(undefined); setError(null) }}
@@ -178,7 +183,7 @@ export default function StepVerification({
                 'bg-white border-[#E2E8F0] text-[#475569] hover:border-[#1B3A6B]'
               } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
-              {s.rollNumber || s.studentName}
+              {s.rollNumber || s.studentName || s.id}
               {s.verificationStatus === 'approved' && ' ✓'}
               {s.verificationStatus === 'rejected' && ' ✗'}
             </button>
@@ -189,9 +194,7 @@ export default function StepVerification({
         </div>
       </Card>
 
-      {/* Main verification layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left: Answer sheet image */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-[#0F172A]">Answer Sheet Preview</h3>
@@ -202,14 +205,14 @@ export default function StepVerification({
             message={`OCR overall confidence: ${activeSheet.overallConfidence || 'High'}. Fields highlighted in red/amber need review.`} />
         </div>
 
-        {/* Right: Extracted data form */}
         <div className="space-y-4">
           <h3 className="text-sm font-semibold text-[#0F172A]">Extracted Data — Review & Correct</h3>
           <div className="space-y-3 max-h-[480px] overflow-y-auto pr-1">
             {fieldDefs.map(f => {
               const conf = (activeSheet.fieldConfidences?.[f.key] as OCRConfidence) || 'High'
-              const val = (merged as any)[f.key] || ''
+              const val = f.value
               const isEdited = editFields[f.key as keyof AnswerSheetOCR] !== undefined
+              
               return (
                 <div key={f.key}
                   className={`relative rounded-lg border p-3 transition-all ${
@@ -244,7 +247,7 @@ export default function StepVerification({
             })}
           </div>
 
-          {/* Actions */}
+          {/* ✅ FIXED: removed leftIcon prop, rendered icons inline */}
           <div className="flex gap-3 pt-2">
             <Button 
               variant="danger" 
@@ -252,9 +255,9 @@ export default function StepVerification({
               fullWidth 
               onClick={handleReject} 
               disabled={isSubmitting}
-              leftIcon={isSubmitting ? <Spinner size="sm" color="white" /> : <XIcon size={14} />}
             >
-              {isSubmitting ? 'Processing...' : 'Reject Sheet'}
+              {isSubmitting ? <Spinner size="sm" color="white" /> : <XIcon size={14} />}
+              {' '}{isSubmitting ? 'Processing...' : 'Reject Sheet'}
             </Button>
             <Button 
               variant="success" 
@@ -262,9 +265,9 @@ export default function StepVerification({
               fullWidth 
               onClick={handleApprove} 
               disabled={isSubmitting}
-              leftIcon={isSubmitting ? <Spinner size="sm" color="white" /> : <CheckIcon size={14} />}
             >
-              {isSubmitting ? 'Processing...' : 'Approve & Continue'}
+              {isSubmitting ? <Spinner size="sm" color="white" /> : <CheckIcon size={14} />}
+              {' '}{isSubmitting ? 'Processing...' : 'Approve & Continue'}
             </Button>
           </div>
           

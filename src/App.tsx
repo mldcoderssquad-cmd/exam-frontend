@@ -1,5 +1,7 @@
+// src/App.tsx
 
-import type { UserRole, Screen } from '@/types'
+import type { User, UserRole, Screen } from '@/types'
+
 import { getSavedUser } from '@/services/auth'
 import { getDashboardScreen } from '@/utils'
 import { useAuth, useNavigation } from '@/hooks'
@@ -12,6 +14,8 @@ import AccountActivation from '@/modules/auth/account-activation/AccountActivati
 import UserProfile from '@/modules/auth/profile/UserProfile'
 import EditProfile from '@/modules/auth/edit-profile/EditProfile'
 import ChangePassword from '@/modules/auth/change-password/ChangePassword'
+import { SessionExpired } from '@/modules/auth/session-expired'
+import { UnauthorizedAccess } from '@/modules/auth/unauthorized'
 
 import FacultyDashboard from '@/modules/faculty/dashboard/FacultyDashboard'
 import HODDashboard from '@/modules/hod/dashboard/HODDashboard'
@@ -19,10 +23,10 @@ import DeanDashboard from '@/modules/dean/dashboard/DeanDashboard'
 import AdminDashboard from '@/modules/admin/dashboard/AdminDashboard'
 
 import AdminUserManagement from '@/modules/admin/user-management/AdminUserManagement'
-import OCRWorkflow from '@/modules/ocr/OCRWorkflow'
 
-import { SessionExpired } from '@/modules/auth/session-expired'
-import { UnauthorizedAccess } from '@/modules/auth/unauthorized'
+import OCRWorkflow from '@/modules/ocr/OCRWorkflow'
+import AnswerKeyManager from '@/modules/answer-key/AnswerKeyManager'
+
 
 export default function App() {
   const {
@@ -37,6 +41,7 @@ export default function App() {
     logout,
     saveProfile,
   } = useAuth()
+
 
   /*
    * ============================================================
@@ -89,14 +94,11 @@ export default function App() {
         break
 
       default:
-        console.error(
-          'Unknown user role:',
-          role
-        )
-
+        console.error('Unknown user role:', role)
         navigate('unauthorized')
     }
   }
+
 
   /*
    * ============================================================
@@ -109,6 +111,7 @@ export default function App() {
     navigate('login')
   }
 
+
   /*
    * ============================================================
    * SAVE PROFILE
@@ -120,6 +123,7 @@ export default function App() {
   ) => {
     saveProfile(updates)
   }
+
 
   /*
    * ============================================================
@@ -136,6 +140,7 @@ export default function App() {
       currentUser.role
     ) as Screen
   }
+
 
   /*
    * ============================================================
@@ -163,6 +168,7 @@ export default function App() {
     )
   }
 
+
   /*
    * ============================================================
    * FORGOT PASSWORD
@@ -178,6 +184,7 @@ export default function App() {
       />
     )
   }
+
 
   /*
    * ============================================================
@@ -195,6 +202,7 @@ export default function App() {
     )
   }
 
+
   /*
    * ============================================================
    * ACCOUNT ACTIVATION
@@ -211,6 +219,7 @@ export default function App() {
     )
   }
 
+
   /*
    * ============================================================
    * SESSION EXPIRED
@@ -226,6 +235,7 @@ export default function App() {
       />
     )
   }
+
 
   /*
    * ============================================================
@@ -250,6 +260,7 @@ export default function App() {
       />
     )
   }
+
 
   /*
    * ============================================================
@@ -280,6 +291,7 @@ export default function App() {
     )
   }
 
+
   /*
    * ============================================================
    * USER PROFILE
@@ -295,6 +307,7 @@ export default function App() {
       />
     )
   }
+
 
   /*
    * ============================================================
@@ -320,6 +333,7 @@ export default function App() {
     )
   }
 
+
   /*
    * ============================================================
    * CHANGE PASSWORD
@@ -342,6 +356,32 @@ export default function App() {
     )
   }
 
+
+  /*
+   * ============================================================
+   * ANSWER KEY MANAGEMENT
+   * ============================================================
+   */
+
+  if (
+    screen === 'answer-key-create' ||
+    screen === 'answer-key-list'
+  ) {
+    return (
+      <AnswerKeyManager
+        user={currentUser}
+        onNavigate={navigate}
+        onLogout={handleLogout}
+        initialScreen={
+          screen === 'answer-key-list'
+            ? 'list'
+            : 'create'
+        }
+      />
+    )
+  }
+
+
   /*
    * ============================================================
    * OCR WORKFLOW
@@ -354,20 +394,17 @@ export default function App() {
     return (
       <OCRWorkflow
         user={currentUser}
-
         onNavigate={navigate}
-
         onLogout={handleLogout}
       />
     )
   }
 
+
   /*
    * ============================================================
    * ADMIN USER MANAGEMENT
    * ============================================================
-   *
-   * IMPORTANT FIX:
    *
    * AdminUserManagement expects:
    *
@@ -376,13 +413,6 @@ export default function App() {
    * NOT:
    *
    *     currentUser={currentUser}
-   *
-   * Passing `currentUser` previously caused the component's
-   * `user` prop to be undefined, resulting in:
-   *
-   *     Cannot read properties of undefined (reading 'name')
-   *
-   * and therefore the white screen.
    */
 
   if (
@@ -398,6 +428,7 @@ export default function App() {
     )
   }
 
+
   /*
    * ============================================================
    * ROLE-SPECIFIC DASHBOARDS
@@ -410,8 +441,11 @@ export default function App() {
     const viewRole =
       DASHBOARD_SCREEN_ROLE_MAP[screen]
 
+
     /*
-     * Security check:
+     * ==========================================================
+     * SECURITY CHECK
+     * ==========================================================
      *
      * A logged-in user should only access
      * their own role dashboard.
@@ -437,8 +471,11 @@ export default function App() {
       )
     }
 
+
     /*
-     * Common dashboard props.
+     * ==========================================================
+     * COMMON DASHBOARD PROPS
+     * ==========================================================
      */
 
     const dashProps = {
@@ -446,6 +483,7 @@ export default function App() {
       onNavigate: navigate,
       onLogout: handleLogout,
     }
+
 
     /*
      * ==========================================================
@@ -463,6 +501,7 @@ export default function App() {
       )
     }
 
+
     /*
      * ==========================================================
      * HOD
@@ -478,6 +517,7 @@ export default function App() {
         />
       )
     }
+
 
     /*
      * ==========================================================
@@ -495,6 +535,7 @@ export default function App() {
       )
     }
 
+
     /*
      * ==========================================================
      * ADMIN
@@ -511,6 +552,7 @@ export default function App() {
       )
     }
   }
+
 
   /*
    * ============================================================

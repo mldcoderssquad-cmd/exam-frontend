@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 
 from utils.security import verify_password, create_token
 
@@ -12,6 +12,15 @@ auth_bp = Blueprint(
     __name__,
     url_prefix="/api/auth"
 )
+
+
+# ============================================================
+# Helper: Get Database
+# ============================================================
+
+def get_db():
+    """Get database connection from Flask app"""
+    return current_app.db
 
 
 # ============================================================
@@ -93,7 +102,7 @@ def login():
         }), 400
 
     # ========================================================
-    # 4. Get database
+    # 4. Get database from current_app
     # ========================================================
 
     try:

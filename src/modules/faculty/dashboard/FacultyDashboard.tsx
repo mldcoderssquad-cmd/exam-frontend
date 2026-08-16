@@ -12,7 +12,7 @@ import type { User, Screen } from '@/types'
 import { LogoutModal } from '@/components/common'
 import {
   ClipboardList, CheckCircle, Hourglass, Clock, AlertTriangle, Rocket,
-  Upload, Play, Search, BarChart3
+  Upload, Play, Search, BarChart3, FileText
 } from 'lucide-react'
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
@@ -154,6 +154,13 @@ export default function FacultyDashboard({ user, onNavigate, onLogout }: Faculty
                   sub="7 low-confidence" 
                   color="#D97706" 
                   onClick={() => goToOCR(undefined, 'review')} 
+                />
+                <QuickAction 
+                  icon={<FileText size={20} />} 
+                  label="Create Answer Key" 
+                  sub="Define questions & rubric" 
+                  color="#7C3AED" 
+                  onClick={() => onNavigate('answer-key-create')} 
                 />
                 <QuickAction 
                   icon={<BarChart3 size={20} />} 

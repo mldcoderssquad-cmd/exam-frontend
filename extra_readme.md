@@ -1,10 +1,17 @@
+## How to run frontend
+
 Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+$env:Path += ";C:\Program Files\nodejs"
+node -v 
+
+npm install
+npm run dev 
 
 
-
- $env:Path += ";C:\Program Files\nodejs"
-node -v
-
+## How to run backend
+venv\Scripts\Activate.ps1
+cd /backend
+python app.py
 
 
 
