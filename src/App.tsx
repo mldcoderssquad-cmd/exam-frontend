@@ -1,7 +1,8 @@
 // src/App.tsx
 
 import type { User, UserRole, Screen } from '@/types'
-import { MOCK_USERS } from '@/services'
+
+import { getSavedUser } from '@/services/auth'
 import { getDashboardScreen } from '@/utils'
 import { useAuth, useNavigation } from '@/hooks'
 import { DASHBOARD_SCREEN_ROLE_MAP } from '@/constants'
@@ -13,32 +14,21 @@ import AccountActivation from '@/modules/auth/account-activation/AccountActivati
 import UserProfile from '@/modules/auth/profile/UserProfile'
 import EditProfile from '@/modules/auth/edit-profile/EditProfile'
 import ChangePassword from '@/modules/auth/change-password/ChangePassword'
+import { SessionExpired } from '@/modules/auth/session-expired'
+import { UnauthorizedAccess } from '@/modules/auth/unauthorized'
+
 import FacultyDashboard from '@/modules/faculty/dashboard/FacultyDashboard'
 import HODDashboard from '@/modules/hod/dashboard/HODDashboard'
 import DeanDashboard from '@/modules/dean/dashboard/DeanDashboard'
 import AdminDashboard from '@/modules/admin/dashboard/AdminDashboard'
+
 import AdminUserManagement from '@/modules/admin/user-management/AdminUserManagement'
+
 import OCRWorkflow from '@/modules/ocr/OCRWorkflow'
-<<<<<<< Updated upstream
-=======
 import AnswerKeyManager from '@/modules/answer-key/AnswerKeyManager'
 
->>>>>>> Stashed changes
-import { SessionExpired } from '@/modules/auth/session-expired'
-import { UnauthorizedAccess } from '@/modules/auth/unauthorized'
 
 export default function App() {
-<<<<<<< Updated upstream
-  const { screen, previousScreen, navigate } = useNavigation('login')
-  const { currentUser, login, logout, saveProfile } = useAuth()
-
-  const handleLoginSuccess = (role: UserRole) => {
-    login(role)
-    navigate(`dashboard-${role.toLowerCase()}` as Screen)
-  }
-
-=======
-
   const {
     screen,
     previousScreen,
@@ -52,14 +42,25 @@ export default function App() {
     saveProfile,
   } = useAuth()
 
+
   /*
    * ============================================================
    * LOGIN SUCCESS
    * ============================================================
+   *
+   * Login.tsx already:
+   *
+   * 1. Calls Flask backend
+   * 2. Receives JWT
+   * 3. Saves JWT
+   * 4. Saves user in localStorage
+   * 5. Calls onSuccess(user.role)
+   *
+   * Therefore App.tsx retrieves the authenticated user
+   * that Login.tsx has already saved.
    */
 
   const handleLoginSuccess = (role: UserRole) => {
-
     const savedUser = getSavedUser()
 
     if (!savedUser) {
@@ -71,10 +72,11 @@ export default function App() {
       return
     }
 
+    // Put authenticated backend user into React state.
     setUser(savedUser)
 
+    // Navigate according to the actual backend role.
     switch (role) {
-
       case 'Faculty':
         navigate('dashboard-faculty')
         break
@@ -92,14 +94,11 @@ export default function App() {
         break
 
       default:
-        console.error(
-          'Unknown user role:',
-          role
-        )
-
+        console.error('Unknown user role:', role)
         navigate('unauthorized')
     }
   }
+
 
   /*
    * ============================================================
@@ -107,24 +106,12 @@ export default function App() {
    * ============================================================
    */
 
->>>>>>> Stashed changes
   const handleLogout = () => {
     logout()
     navigate('login')
   }
 
-<<<<<<< Updated upstream
-  const handleSaveProfile = (updates: Partial<User>) => {
-    saveProfile(updates)
-  }
 
-  const getDashboardScreenForUser = () => {
-    if (!currentUser) return 'login'
-    return getDashboardScreen(currentUser.role) as Screen
-  }
-
-  // ─── Screens without authenticated user ────────────────────────────────────
-=======
   /*
    * ============================================================
    * SAVE PROFILE
@@ -137,6 +124,7 @@ export default function App() {
     saveProfile(updates)
   }
 
+
   /*
    * ============================================================
    * DASHBOARD SCREEN FOR CURRENT USER
@@ -144,7 +132,6 @@ export default function App() {
    */
 
   const getDashboardScreenForUser = (): Screen => {
-
     if (!currentUser) {
       return 'login'
     }
@@ -154,118 +141,163 @@ export default function App() {
     ) as Screen
   }
 
+
   /*
    * ============================================================
    * LOGIN SCREEN
    * ============================================================
    */
 
->>>>>>> Stashed changes
   if (screen === 'login') {
     return (
       <Login
         onSuccess={handleLoginSuccess}
-        onForgotPassword={() => navigate('forgot-password')}
-        onActivateAccount={() => navigate('account-activation')}
-        onSessionExpired={() => navigate('session-expired')}
+
+        onForgotPassword={() =>
+          navigate('forgot-password')
+        }
+
+        onActivateAccount={() =>
+          navigate('account-activation')
+        }
+
+        onSessionExpired={() =>
+          navigate('session-expired')
+        }
       />
     )
   }
 
-<<<<<<< Updated upstream
-=======
+
   /*
    * ============================================================
    * FORGOT PASSWORD
    * ============================================================
    */
 
->>>>>>> Stashed changes
   if (screen === 'forgot-password') {
-    return <ForgotPassword onBack={() => navigate('login')} />
+    return (
+      <ForgotPassword
+        onBack={() =>
+          navigate('login')
+        }
+      />
+    )
   }
 
-<<<<<<< Updated upstream
-=======
+
   /*
    * ============================================================
    * RESET PASSWORD
    * ============================================================
    */
 
->>>>>>> Stashed changes
   if (screen === 'reset-password') {
-    return <ResetPassword onBackToLogin={() => navigate('login')} />
+    return (
+      <ResetPassword
+        onBackToLogin={() =>
+          navigate('login')
+        }
+      />
+    )
   }
 
-<<<<<<< Updated upstream
-=======
+
   /*
    * ============================================================
    * ACCOUNT ACTIVATION
    * ============================================================
    */
 
->>>>>>> Stashed changes
   if (screen === 'account-activation') {
-    return <AccountActivation onBackToLogin={() => navigate('login')} />
+    return (
+      <AccountActivation
+        onBackToLogin={() =>
+          navigate('login')
+        }
+      />
+    )
   }
 
-<<<<<<< Updated upstream
-=======
+
   /*
    * ============================================================
    * SESSION EXPIRED
    * ============================================================
    */
 
->>>>>>> Stashed changes
   if (screen === 'session-expired') {
-    return <SessionExpired onReturnToLogin={() => navigate('login')} />
+    return (
+      <SessionExpired
+        onReturnToLogin={() =>
+          navigate('login')
+        }
+      />
+    )
   }
 
-<<<<<<< Updated upstream
-=======
+
   /*
    * ============================================================
    * UNAUTHORIZED
    * ============================================================
    */
 
->>>>>>> Stashed changes
   if (screen === 'unauthorized') {
     return (
       <UnauthorizedAccess
-        onReturnToDashboard={() => navigate(getDashboardScreenForUser())}
-        onGoBack={() => navigate(previousScreen)}
+        onReturnToDashboard={() =>
+          navigate(
+            getDashboardScreenForUser()
+          )
+        }
+
+        onGoBack={() =>
+          navigate(previousScreen)
+        }
+
         userRole={currentUser?.role}
       />
     )
   }
 
-<<<<<<< Updated upstream
-  // ─── Screens requiring authenticated user ──────────────────────────────────
-=======
+
   /*
    * ============================================================
    * AUTHENTICATION GUARD
    * ============================================================
+   *
+   * Every screen below this point requires
+   * an authenticated user.
    */
 
->>>>>>> Stashed changes
   if (!currentUser) {
-    return <Login onSuccess={handleLoginSuccess} onForgotPassword={() => navigate('forgot-password')} />
+    return (
+      <Login
+        onSuccess={handleLoginSuccess}
+
+        onForgotPassword={() =>
+          navigate('forgot-password')
+        }
+
+        onActivateAccount={() =>
+          navigate('account-activation')
+        }
+
+        onSessionExpired={() =>
+          navigate('session-expired')
+        }
+      />
+    )
   }
 
-<<<<<<< Updated upstream
-=======
+
   /*
    * ============================================================
    * USER PROFILE
    * ============================================================
    */
 
->>>>>>> Stashed changes
   if (screen === 'profile') {
     return (
       <UserProfile
@@ -276,73 +308,88 @@ export default function App() {
     )
   }
 
-<<<<<<< Updated upstream
-=======
+
   /*
    * ============================================================
    * EDIT PROFILE
    * ============================================================
    */
 
->>>>>>> Stashed changes
   if (screen === 'edit-profile') {
     return (
       <EditProfile
         user={currentUser}
+
         onSave={handleSaveProfile}
-        onCancel={() => navigate('profile')}
+
+        onCancel={() =>
+          navigate('profile')
+        }
+
         onNavigate={navigate}
+
         onLogout={handleLogout}
       />
     )
   }
 
-<<<<<<< Updated upstream
-=======
+
   /*
    * ============================================================
    * CHANGE PASSWORD
    * ============================================================
    */
 
->>>>>>> Stashed changes
   if (screen === 'change-password') {
     return (
       <ChangePassword
         user={currentUser}
+
         onNavigate={navigate}
+
         onLogout={handleLogout}
-        onBack={() => navigate('profile')}
+
+        onBack={() =>
+          navigate('profile')
+        }
       />
     )
   }
 
-<<<<<<< Updated upstream
-=======
+
   /*
    * ============================================================
    * ANSWER KEY MANAGEMENT
    * ============================================================
    */
 
-  if (screen === 'answer-key-create' || screen === 'answer-key-list') {
+  if (
+    screen === 'answer-key-create' ||
+    screen === 'answer-key-list'
+  ) {
     return (
       <AnswerKeyManager
         user={currentUser}
         onNavigate={navigate}
         onLogout={handleLogout}
-        initialScreen={screen === 'answer-key-list' ? 'list' : 'create'}
+        initialScreen={
+          screen === 'answer-key-list'
+            ? 'list'
+            : 'create'
+        }
       />
     )
   }
+
 
   /*
    * ============================================================
    * OCR WORKFLOW
    * ============================================================
+   *
+   * OCRWorkflow requires `user`.
    */
 
->>>>>>> Stashed changes
   if (screen === 'ocr-workflow') {
     return (
       <OCRWorkflow
@@ -353,47 +400,35 @@ export default function App() {
     )
   }
 
-<<<<<<< Updated upstream
-  if (screen === 'admin-users' || screen === 'admin-create-user') {
-=======
+
   /*
    * ============================================================
    * ADMIN USER MANAGEMENT
    * ============================================================
+   *
+   * AdminUserManagement expects:
+   *
+   *     user={currentUser}
+   *
+   * NOT:
+   *
+   *     currentUser={currentUser}
    */
 
   if (
     screen === 'admin-users' ||
     screen === 'admin-create-user'
   ) {
-
->>>>>>> Stashed changes
     return (
       <AdminUserManagement
-        currentUser={currentUser}
+        user={currentUser}
         onNavigate={navigate}
         onLogout={handleLogout}
       />
     )
   }
 
-<<<<<<< Updated upstream
-  // Role-specific dashboards
-  if (screen in DASHBOARD_SCREEN_ROLE_MAP) {
-    const viewRole = DASHBOARD_SCREEN_ROLE_MAP[screen]
-    const viewUser = viewRole === currentUser.role ? currentUser : { ...MOCK_USERS[viewRole] }
-    const dashProps = { user: viewUser, onNavigate: navigate, onLogout: handleLogout }
 
-    if (screen === 'dashboard-faculty') return <FacultyDashboard {...dashProps} />
-    if (screen === 'dashboard-hod') return <HODDashboard {...dashProps} />
-    if (screen === 'dashboard-dean') return <DeanDashboard {...dashProps} />
-    if (screen === 'dashboard-admin') return <AdminDashboard {...dashProps} />
-  }
-
-  // Fallback
-  return <Login onSuccess={handleLoginSuccess} onForgotPassword={() => navigate('forgot-password')} />
-}
-=======
   /*
    * ============================================================
    * ROLE-SPECIFIC DASHBOARDS
@@ -403,14 +438,22 @@ export default function App() {
   if (
     screen in DASHBOARD_SCREEN_ROLE_MAP
   ) {
-
     const viewRole =
       DASHBOARD_SCREEN_ROLE_MAP[screen]
+
+
+    /*
+     * ==========================================================
+     * SECURITY CHECK
+     * ==========================================================
+     *
+     * A logged-in user should only access
+     * their own role dashboard.
+     */
 
     if (
       viewRole !== currentUser.role
     ) {
-
       return (
         <UnauthorizedAccess
           onReturnToDashboard={() =>
@@ -428,16 +471,29 @@ export default function App() {
       )
     }
 
+
+    /*
+     * ==========================================================
+     * COMMON DASHBOARD PROPS
+     * ==========================================================
+     */
+
     const dashProps = {
       user: currentUser,
       onNavigate: navigate,
       onLogout: handleLogout,
     }
 
+
+    /*
+     * ==========================================================
+     * FACULTY
+     * ==========================================================
+     */
+
     if (
       screen === 'dashboard-faculty'
     ) {
-
       return (
         <FacultyDashboard
           {...dashProps}
@@ -445,10 +501,16 @@ export default function App() {
       )
     }
 
+
+    /*
+     * ==========================================================
+     * HOD
+     * ==========================================================
+     */
+
     if (
       screen === 'dashboard-hod'
     ) {
-
       return (
         <HODDashboard
           {...dashProps}
@@ -456,10 +518,16 @@ export default function App() {
       )
     }
 
+
+    /*
+     * ==========================================================
+     * DEAN
+     * ==========================================================
+     */
+
     if (
       screen === 'dashboard-dean'
     ) {
-
       return (
         <DeanDashboard
           {...dashProps}
@@ -467,10 +535,16 @@ export default function App() {
       )
     }
 
+
+    /*
+     * ==========================================================
+     * ADMIN
+     * ==========================================================
+     */
+
     if (
       screen === 'dashboard-admin'
     ) {
-
       return (
         <AdminDashboard
           {...dashProps}
@@ -478,6 +552,7 @@ export default function App() {
       )
     }
   }
+
 
   /*
    * ============================================================
@@ -503,4 +578,3 @@ export default function App() {
     />
   )
 }
->>>>>>> Stashed changes

@@ -107,7 +107,7 @@ def login():
 
     try:
 
-        db = get_db()
+        from app import db
 
         if db is None:
 
@@ -279,12 +279,27 @@ def login():
     # ========================================================
     # 12. Get Employee ID
     # ========================================================
+    #
+    # IMPORTANT:
+    #
+    # user["_id"]
+    #       = MongoDB ObjectId
+    #
+    # user["employeeId"]
+    #       = Actual university employee ID
+    #
+    # Example:
+    #
+    # employeeId = "ADM-2026-001"
+    #
+    # ========================================================
 
     employee_id = user.get("employeeId")
 
     if employee_id is not None:
         employee_id = str(employee_id).strip()
 
+    # Don't accidentally send an empty string.
     if not employee_id:
         employee_id = None
 
@@ -325,6 +340,10 @@ def login():
         "token": token,
         "user": user_data
     }
+
+    # ========================================================
+    # 16. Print EXACT response sent to frontend
+    # ========================================================
 
     print("\n========== RESPONSE TO FRONTEND ==========")
     print(response_data)
