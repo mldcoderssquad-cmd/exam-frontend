@@ -1,16 +1,16 @@
 import os
+
 from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from pymongo import MongoClient
 from dotenv import load_dotenv
+
 from routes.auth import auth_bp
 from routes.answer_key import answer_key_bp
 from routes.admin import admin_bp
 from routes.notification_routes import notification_bp
-
-# If HOD routes are actually required, uncomment this:
-# from routes.hod import hod_bp
+from routes.faculty import faculty_bp
 
 
 # =========================================================
@@ -28,10 +28,14 @@ MONGODB_URI = os.getenv("MONGODB_URI")
 JWT_SECRET = os.getenv("JWT_SECRET")
 
 if not MONGODB_URI:
-    raise RuntimeError("MONGODB_URI is not configured in .env")
+    raise RuntimeError(
+        "MONGODB_URI is not configured in .env"
+    )
 
 if not JWT_SECRET:
-    raise RuntimeError("JWT_SECRET is not configured in .env")
+    raise RuntimeError(
+        "JWT_SECRET is not configured in .env"
+    )
 
 
 # =========================================================
@@ -44,7 +48,11 @@ app.config["JWT_SECRET_KEY"] = JWT_SECRET
 
 CORS(app)
 
+
+# =========================================================
 # Initialize JWT Manager
+# =========================================================
+
 jwt = JWTManager(app)
 
 
@@ -54,34 +62,56 @@ jwt = JWTManager(app)
 
 try:
     client = MongoClient(MONGODB_URI)
+
     db = client["ExamEvaluate"]
 
-    # Make DB available to routes
+    # Make DB available globally for routes
     app.db = db
 
-    # Test connection
+    # Test MongoDB connection
     client.admin.command("ping")
 
     print("✅ Connected to MongoDB Atlas successfully!")
     print(f"📊 Database: {db.name}")
 
 except Exception as e:
-    print(f"❌ MongoDB Atlas connection failed: {e}")
-    print("Please check your MONGODB_URI in .env file")
-    exit(1)
+
+    print(
+        f"❌ MongoDB Atlas connection failed: {e}"
+    )
+
+    print(
+        "Please check your MONGODB_URI in .env file"
+    )
+
+    raise
 
 
 # =========================================================
 # Register Blueprints
 # =========================================================
 
+# Authentication routes
 app.register_blueprint(auth_bp)
+
+
+# Answer key routes
 app.register_blueprint(answer_key_bp)
+
+
+# Admin routes
 app.register_blueprint(admin_bp)
+
+
+# Notification routes
 app.register_blueprint(notification_bp)
 
-# Only add this if you have routes/hod.py:
-# app.register_blueprint(hod_bp)# =========================================================
+
+# Faculty routes
+app.register_blueprint(faculty_bp)
+
+
+# =========================================================
 # Home
 # =========================================================
 
@@ -89,20 +119,30 @@ app.register_blueprint(notification_bp)
 def home():
 
     return jsonify({
-        "message": "ExamEvaluate Flask backend is running"
+        "message": "ExamEvaluate Flask backend is running",
+        "status": "success"
     })
 
 
+# =========================================================
+# Health Check
+# =========================================================
+
 @app.route("/api/health")
 def health():
+
     try:
+
         client.admin.command("ping")
+
         return jsonify({
             "message": "Flask and MongoDB Atlas are connected",
             "status": "success",
             "database": db.name
         })
+
     except Exception as e:
+
         return jsonify({
             "message": "MongoDB Atlas connection failed",
             "status": "error",
@@ -122,4 +162,3 @@ if __name__ == "__main__":
         host="127.0.0.1",
         port=5000
     )
-    
